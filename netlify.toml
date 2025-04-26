@@ -1,0 +1,20 @@
+[build]
+  publish = "src/app"
+  functions = "netlify/functions"
+
+[dev]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/notes"
+  to = "/.netlify/functions/get-notes"
+  status = 200
+  force = true
+  conditions = { method = ["GET"] }
+
+[[redirects]]
+  from = "/api/notes"
+  to = "/.netlify/functions/create-note"
+  status = 200
+  force = true
+  conditions = { method = ["POST"] }

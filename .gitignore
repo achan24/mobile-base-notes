@@ -49,7 +49,7 @@ pids
 *.sublime-project
 
 # dotenv environment variables
-#.env*
+.env*
 
 # Misc
 *.swp
@@ -95,6 +95,9 @@ next-env.d.ts
 *.pem
 
 # Ignore backend .env and build if present
-#backend/.env*
+backend/.env*
 backend/build/
-#backend/node_modules/
+backend/node_modules/
+
+# Local Netlify folder
+.netlify
