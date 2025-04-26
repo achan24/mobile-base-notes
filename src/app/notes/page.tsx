@@ -24,7 +24,7 @@ export default function NotesPage() {
       const res = await fetch(`${API_URL}/api/notes`);
       const data = await res.json();
       setNotes(data);
-    } catch (err) {
+    } catch {
       setError("Failed to fetch notes");
     } finally {
       setLoading(false);
@@ -33,7 +33,6 @@ export default function NotesPage() {
 
   useEffect(() => {
     fetchNotes();
-    // eslint-disable-next-line
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +49,7 @@ export default function NotesPage() {
       if (!res.ok) throw new Error("Failed to create note");
       setText("");
       await fetchNotes();
-    } catch (err) {
+    } catch {
       setError("Failed to create note");
     } finally {
       setLoading(false);
