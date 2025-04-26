@@ -7,9 +7,8 @@ interface Note {
   createdAt: string;
 }
 
-const API_URL = typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_URL
-  ? process.env.NEXT_PUBLIC_API_URL
-  : "http://localhost:4000";
+// Use relative API URL for both local and deployed environments
+const API_URL = "";
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
