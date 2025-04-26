@@ -1,5 +1,6 @@
 [build]
-  publish = "src/app"
+  command = "npm run build"
+  publish = ".next"
   functions = "netlify/functions"
 
 [dev]
