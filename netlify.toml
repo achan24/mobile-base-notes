@@ -3,23 +3,9 @@
   publish = ".next"
   functions = "netlify/functions"
 
-[[redirects]]
-  from = "/api/notes"
-  to = "/.netlify/functions/get-notes"
-  status = 200
-  force = true
-  conditions = { method = ["GET"] }
-
-[[redirects]]
-  from = "/api/notes"
-  to = "/.netlify/functions/create-note"
-  status = 200
-  force = true
-  conditions = { method = ["POST"] }
-
-# Ensure catch-all redirect for Next.js SSR (optional but recommended)
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
+# (Optional) You may keep or remove the catch-all /api/* redirect below if you plan to use only Next.js API routes.
+# [[redirects]]
+#   from = "/api/*"
+#   to = "/.netlify/functions/:splat"
+#   status = 200
+#   force = true
