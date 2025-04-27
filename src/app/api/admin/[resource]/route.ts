@@ -27,7 +27,7 @@ export async function GET(
 export async function POST(req: Request, ctx: any) {
   if (ctx.params.resource !== "invites")
     return new Response("Method Not Allowed", { status: 405 })
-  return (await import("./invite/route")).POST(req)
+  return (await import("../invite/route")).POST(req)
 }
 
 export async function PUT(req: Request, { params }: { params: { resource: string } }) {
