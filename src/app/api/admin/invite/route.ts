@@ -5,7 +5,8 @@ import crypto from "crypto"
 import { add } from "date-fns"
 
 export async function POST(req: Request) {
-  const { user } = await auth()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { user } = await auth() as any
   if (!user || user.role !== "admin")
     return new Response("Forbidden", { status: 403 })
 
