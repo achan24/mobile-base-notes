@@ -89,13 +89,3 @@ function parseParams(req: Request) {
     order: url.searchParams.get('_order') ?? 'DESC',
   }
 }
-
-function json(data: WithId<Document>[], total: number) {
-  const records = data.map(({ _id, ...rest }) => ({ id: _id.toString(), ...rest }))
-  return new Response(JSON.stringify(records), {
-    headers: {
-      "Content-Type": "application/json",
-      "X-Total-Count": String(total),
-    },
-  })
-}
