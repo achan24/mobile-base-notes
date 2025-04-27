@@ -5,52 +5,57 @@ import { ObjectId, Db, WithId, Document } from "mongodb"
 // Opt into Node runtime explicitly
 export const runtime = "nodejs"
 
-type Resource = "users" | "invites"
-
 export async function GET(
   req: Request,
-  { params: { resource } }: { params: { resource: Resource } }
+  { params }: { params: { resource: string } }
 ) {
+  const { resource } = params
+  if (resource !== "users" && resource !== "invites")
+    return new Response("Not found", { status: 404 })
+
   const gate = await adminGate()
   if (!gate.ok) return gate.res
 
   const { start, end, sort, order } = parseParams(req)
-  const { db, col } = await collectionFor(resource)
+  const db: Db = (await clientPromise()).db()
+  const col = db.collection(resource)
 
-  const cursor = db.collection(col)
+  const cursor = col
     .find({})
     .sort({ [sort]: order === "ASC" ? 1 : -1 })
     .skip(start)
     .limit(end - start)
 
   const data: WithId<Document>[] = await cursor.toArray()
-  const total = await db.collection(col).countDocuments()
+  const total = await col.countDocuments()
 
   return json(data, total)
 }
 
-export async function POST(req: Request, ctx: { params: { resource: Resource } }) {
-  if (ctx.params.resource !== "invites")
+export async function POST(req: Request, { params }: { params: { resource: string } }) {
+  if (params.resource !== "invites")
     return new Response("Method Not Allowed", { status: 405 })
   return (await import("../invite/route")).POST(req)
 }
 
-export async function PUT(req: Request, { params }: { params: { resource: Resource } }) {
+export async function PUT(req: Request, { params }: { params: { resource: string } }) {
   const gate = await adminGate(); if (!gate.ok) return gate.res
   const body = await req.json()
-  const { db, col } = await collectionFor(params.resource)
+  const db: Db = (await clientPromise()).db()
+  const col = db.collection(params.resource)
 
   const { id, ...rest } = body
-  await db.collection(col).updateOne({ _id: new ObjectId(id) }, { $set: rest })
+  await col.updateOne({ _id: new ObjectId(id) }, { $set: rest })
   return Response.json(body)
 }
 
-export async function DELETE(req: Request, { params }: { params: { resource: Resource } }) {
+export async function DELETE(req: Request, { params }: { params: { resource: string } }) {
   const gate = await adminGate(); if (!gate.ok) return gate.res
   const id = new URL(req.url).searchParams.get("id")
   if (!id) return new Response("id required", { status: 400 })
-  const { db, col } = await collectionFor(params.resource)
-  await db.collection(col).deleteOne({ _id: new ObjectId(id) })
+  const db: Db = (await clientPromise()).db()
+  const col = db.collection(params.resource)
+  await col.deleteOne({ _id: new ObjectId(id) })
   return Response.json({ id })
 }
 
@@ -69,12 +74,6 @@ function parseParams(req: Request) {
     sort:  url.searchParams.get("_sort")  ?? "createdAt",
     order: url.searchParams.get("_order") ?? "DESC",
   }
-}
-
-async function collectionFor(resource: Resource): Promise<{ db: Db, col: string }> {
-  const db: Db = (await clientPromise()).db()
-  const col: Resource = resource
-  return { db, col }
 }
 
 function json(data: WithId<Document>[], total: number) {
