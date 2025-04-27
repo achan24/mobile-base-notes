@@ -74,8 +74,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ resou
 }
 
 async function adminGate() {
-  const { user } = await auth()
-  if (!user || user.role !== 'admin')
+  const session = await auth()
+  if (!session?.user || session.user.role !== 'admin')
     return { ok: false, res: new Response('Forbidden', { status: 403 }) }
   return { ok: true }
 }
