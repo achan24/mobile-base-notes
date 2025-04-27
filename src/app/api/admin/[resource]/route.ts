@@ -1,10 +1,15 @@
 import { auth } from "@/auth"
 import clientPromise from "@/lib/mongo"
-import { ObjectId } from "mongodb"
+import { ObjectId, Db, WithId, Document } from "mongodb"
+
+// Opt into Node runtime explicitly
+export const runtime = "nodejs"
+
+type Resource = "users" | "invites"
 
 export async function GET(
   req: Request,
-  { params: { resource } }: { params: { resource: string } }
+  { params: { resource } }: { params: { resource: Resource } }
 ) {
   const gate = await adminGate()
   if (!gate.ok) return gate.res
@@ -18,19 +23,19 @@ export async function GET(
     .skip(start)
     .limit(end - start)
 
-  const data  = await cursor.toArray()
+  const data: WithId<Document>[] = await cursor.toArray()
   const total = await db.collection(col).countDocuments()
 
   return json(data, total)
 }
 
-export async function POST(req: Request, ctx: any) {
+export async function POST(req: Request, ctx: { params: { resource: Resource } }) {
   if (ctx.params.resource !== "invites")
     return new Response("Method Not Allowed", { status: 405 })
   return (await import("../invite/route")).POST(req)
 }
 
-export async function PUT(req: Request, { params }: { params: { resource: string } }) {
+export async function PUT(req: Request, { params }: { params: { resource: Resource } }) {
   const gate = await adminGate(); if (!gate.ok) return gate.res
   const body = await req.json()
   const { db, col } = await collectionFor(params.resource)
@@ -40,7 +45,7 @@ export async function PUT(req: Request, { params }: { params: { resource: string
   return Response.json(body)
 }
 
-export async function DELETE(req: Request, { params }: { params: { resource: string } }) {
+export async function DELETE(req: Request, { params }: { params: { resource: Resource } }) {
   const gate = await adminGate(); if (!gate.ok) return gate.res
   const id = new URL(req.url).searchParams.get("id")
   if (!id) return new Response("id required", { status: 400 })
@@ -66,13 +71,13 @@ function parseParams(req: Request) {
   }
 }
 
-async function collectionFor(resource: string) {
-  const db = (await clientPromise()).db()
-  const col = resource === "users" ? "users" : "invites"
+async function collectionFor(resource: Resource): Promise<{ db: Db, col: string }> {
+  const db: Db = (await clientPromise()).db()
+  const col: Resource = resource
   return { db, col }
 }
 
-function json(data: any[], total: number) {
+function json(data: WithId<Document>[], total: number) {
   const records = data.map(({ _id, ...rest }) => ({ id: _id.toString(), ...rest }))
   return new Response(JSON.stringify(records), {
     headers: {
